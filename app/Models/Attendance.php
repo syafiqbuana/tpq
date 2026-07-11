@@ -33,4 +33,9 @@ class Attendance extends Model
     {
         return $this->belongsTo(Student::class);
     }
+
+    public function schedule()
+    {
+        return $this->belongsTo(Schedules::class);
+    }
 }

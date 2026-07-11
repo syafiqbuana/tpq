@@ -53,7 +53,7 @@ class RoleSeeder extends Seeder
         $customAdminPermissions = [
             'scan attendance',
             'export id card',
-            'import data'
+            'import data',
         ];
 
         foreach ($customAdminPermissions as $customPermission) {

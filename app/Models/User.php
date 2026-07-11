@@ -3,7 +3,6 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Database\Factories\UserFactory;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -27,7 +26,12 @@ class User extends Authenticatable implements FilamentUser
         'name',
         'email',
         'password',
+        'is_active',
         'address',
+    ];
+
+    protected $casts = [
+        'is_active' => 'boolean',
     ];
 
     public const PARENT_ROlE = 'parent';
@@ -62,7 +66,7 @@ class User extends Authenticatable implements FilamentUser
         return match ($panel->getId()) {
             'superadmin' => $this->is_superadmin,
 
-            'admin' => $this->is_superadmin || $this->hasRole(self::ADMIN_ROLE),
+            'admin' => $this->is_active && ($this->is_superadmin || $this->hasRole(self::ADMIN_ROLE)), 
 
             default => false,
         };

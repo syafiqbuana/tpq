@@ -6,6 +6,7 @@ use App\Filament\Admin\Resources\Users\UserResource;
 use App\Models\User;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
+use Filament\Schemas\Components\Tabs\Tab;
 
 class ListUsers extends ListRecords
 {
@@ -21,7 +22,9 @@ class ListUsers extends ListRecords
                     $user->assignRole(['parent']);
 
                     return $user;
-                })
+                })->label('Tambah Pengguna')
         ];
     }
+
+
 }

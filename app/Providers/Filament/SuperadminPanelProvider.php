@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\SuperAdmin\Pages\Auth\Login;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -27,7 +28,7 @@ class SuperadminPanelProvider extends PanelProvider
             ->default()
             ->id('superadmin')
             ->path('superadmin')
-            ->login()
+            ->login(Login::class)
             ->colors([
                 'primary' => Color::Lime,
             ])

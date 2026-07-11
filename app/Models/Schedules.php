@@ -18,5 +18,8 @@ class Schedules extends Model
         return $this->belongsToMany(Classes::class, 'schedule_class');
     }
 
-    
+    public function attendances()
+    {
+        return $this->hasMany(Attendance::class);
+    }
 }
