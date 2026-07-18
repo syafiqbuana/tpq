@@ -9,9 +9,6 @@ class Schedules extends Model
 {
     protected $fillable =['name','day','time_open','time_close'];
 
-
-
-
     public function classes()
     {
         return $this->belongsToMany(Classes::class, 'schedule_class', 'schedule_id', 'class_id')->withTimestamps();

@@ -29,17 +29,12 @@ class AttendanceMarkAbsent extends Command
      */
 public function handle()
 {
-    $now = Carbon::now();
+    $now = Carbon::now(); // pastikan timezone app = Asia/Jakarta di config/app.php
     $dayName = strtolower($now->format('l'));
+    $currentTime = $now->format('H:i:s');
 
-    // Batas atas (waktu sekarang)
-    $endTime = $now->format('H:i:00');
-    
-    // Batas bawah toleransi (misal 2 jam ke belakang)
-    $startTime = $now->copy()->subMinutes(120)->format('H:i:00');
-
-    // Cari ID jadwal yang sudah melewati time_close
-    $scheduleIds = Schedules::whereBetween('time_close', [$startTime, $endTime])
+    // Cari semua jadwal hari ini yang sudah melewati time_close (tanpa batasan window)
+    $scheduleIds = Schedules::where('time_close', '<=', $currentTime)
         ->whereRaw("FIND_IN_SET(?, day)", [$dayName])
         ->pluck('id');
 
@@ -48,7 +43,6 @@ public function handle()
         return self::SUCCESS;
     }
 
-    // Update massal: Ubah pending -> alfa HANYA untuk jadwal yang sudah tutup hari ini
     $updatedCount = Attendance::whereIn('schedule_id', $scheduleIds)
         ->where('date', $now->toDateString())
         ->where('status', 'pending')

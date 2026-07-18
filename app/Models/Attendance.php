@@ -13,6 +13,7 @@ class Attendance extends Model
         'time_in' => 'datetime:H:i:s',
     ];
 
+    
 
     public function student()
     {

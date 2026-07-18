@@ -28,24 +28,16 @@ class GenerateAttendanceSessions extends Command
      */
 public function handle()
 {
-$now = Carbon::now();
+    $now = Carbon::now();
     $dayName = strtolower($now->format('l')); 
-    
-    // Waktu batas atas (5 menit yang lalu)
-    $endTime = $now->copy()->subMinutes(5)->format('H:i:00'); 
-    
-    // Waktu batas bawah toleransi server mati (misal kita set 2 jam ke belakang)
-    // Sesuaikan durasi ini dengan kebutuhanmu
-    $startTime = $now->copy()->subMinutes(120)->format('H:i:00'); 
 
-    // Cari jadwal yang time_open-nya berada di antara startTime dan endTime
-    $schedules = Schedules::whereBetween('time_open', [$startTime, $endTime])
-        ->whereRaw("FIND_IN_SET(?, day)", [$dayName])
+    // Hapus pencarian berdasarkan waktu, cukup cari berdasarkan HARI SAJA
+    $schedules = Schedules::whereRaw("FIND_IN_SET(?, day)", [$dayName])
         ->with('classes.students')
         ->get();
 
     if ($schedules->isEmpty()) {
-        $this->info("Tidak ada jadwal yang cocok pada {$now->format('Y-m-d H:i')}.");
+        $this->info("Tidak ada jadwal yang cocok pada hari {$dayName}.");
         return self::SUCCESS;
     }
 
@@ -61,7 +53,7 @@ $now = Carbon::now();
             continue;
         }
 
-        // Cek siapa saja yang sudah absen hari ini dalam 1 Query (mengurangi beban N+1 SELECT)
+        // Cek siapa saja yang sudah absen hari ini
         $existingAttendances = Attendance::where('schedule_id', $schedule->id)
             ->where('date', $now->toDateString())
             ->whereIn('student_id', $studentIds)
@@ -72,20 +64,18 @@ $now = Carbon::now();
         $missingStudentIds = array_diff($studentIds->toArray(), $existingAttendances);
 
         if (!empty($missingStudentIds)) {
-            // Siapkan data untuk BULK INSERT
             $insertData = [];
             foreach ($missingStudentIds as $studentId) {
                 $insertData[] = [
                     'schedule_id' => $schedule->id,
                     'student_id'  => $studentId,
                     'date'        => $now->toDateString(),
-                    'status'      => 'pending',
+                    'status'      => 'pending', // Set status awal sebagai pending
                     'created_at'  => $now,
                     'updated_at'  => $now,
                 ];
             }
 
-            // Lakukan 1 kali INSERT per jadwal, bukan berkali-kali!
             Attendance::insert($insertData);
             $created += count($insertData);
         }

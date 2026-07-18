@@ -29,6 +29,7 @@ class StudentsTable
                 TextColumn::make('birth_place')->label('Tempat Lahir')->sortable()->searchable(),
                 TextColumn::make('users.address')
                     ->label('Alamat'),
+                TextColumn::make('classes.name'),
                 TextColumn::make('gender')->badge()->formatStateUsing(fn(string $state): string => match ($state) {
                     'male' => 'Laki-laki',
                     'female' => 'Perempuan',

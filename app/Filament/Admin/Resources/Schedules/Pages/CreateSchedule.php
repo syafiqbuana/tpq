@@ -7,6 +7,7 @@ use App\Models\Schedules;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Log;
 
 
 class CreateSchedule extends CreateRecord
@@ -15,39 +16,42 @@ class CreateSchedule extends CreateRecord
 
     protected function beforeCreate(): void
     {
-        $formData = $this->data;
+        // Ambil dari dua sumber berbeda
+        $stateData = $this->form->getState(); // time values yang bersih
+        $rawData = $this->data;              // classes yang ada di sini
 
-        $days = $formData['day'] ?? [];       // kemungkinan array dari multi-select
-        $timeOpen = $formData['time_open'] ?? null;
-        $timeClose = $formData['time_close'] ?? null;
-        $selectedClassIds = $formData['classes'] ?? [];
+        $day = $stateData['day'] ?? null;
+        $timeOpen = $stateData['time_open'] ?? null;   // "07:00:00" ✅
+        $timeClose = $stateData['time_close'] ?? null;  // "09:00:00" ✅
+        $selectedClassIds = $rawData['classes'] ?? [];          // ["2"] ✅
 
         if (!is_array($selectedClassIds)) {
-            $selectedClassIds = [$selectedClassIds];
+            $selectedClassIds = array_filter([$selectedClassIds]);
         }
 
-        // Normalisasi $days → selalu array
-        if (!is_array($days)) {
-            $days = array_filter(explode(',', $days)); // handle string 'senin,rabu'
-        }
+        $daysArray = match (true) {
+            empty($day) => [],
+            is_array($day) => $day,
+            default => array_filter(explode(',', $day)),
+        };
 
-        if (empty($days) || !$timeOpen || !$timeClose || empty($selectedClassIds)) {
+        if (empty($daysArray) || !$timeOpen || !$timeClose || empty($selectedClassIds)) {
+            Log::debug('beforeCreate: guard hit', compact('daysArray', 'timeOpen', 'timeClose', 'selectedClassIds'));
             return;
         }
 
+        Log::debug('beforeCreate: running overlap query', compact('daysArray', 'timeOpen', 'timeClose', 'selectedClassIds'));
+
         $isOverlapping = Schedules::query()
-            // Cek apakah ada hari yang sama (pakai FIND_IN_SET karena kolom SET)
-            ->where(function ($query) use ($days) {
-                foreach ($days as $day) {
+            ->where(function ($query) use ($daysArray) {
+                foreach ($daysArray as $day) {
                     $query->orWhereRaw('FIND_IN_SET(?, day) > 0', [trim($day)]);
                 }
             })
-            // Cek tumpang tindih waktu
             ->where(function ($query) use ($timeOpen, $timeClose) {
                 $query->where('time_open', '<', $timeClose)
                     ->where('time_close', '>', $timeOpen);
             })
-            // Cek apakah melibatkan kelas yang sama
             ->whereHas('classes', function ($query) use ($selectedClassIds) {
                 $query->whereIn('classes.id', $selectedClassIds);
             })
@@ -56,7 +60,7 @@ class CreateSchedule extends CreateRecord
         if ($isOverlapping) {
             Notification::make()
                 ->title('Gagal Menyimpan Jadwal')
-                ->body('Terjadi bentrok! Salah satu kelas yang dipilih sudah memiliki jadwal lain pada hari dan jam yang tumpang tindih.')
+                ->body('Salah satu kelas yang dipilih sudah memiliki jadwal lain pada hari dan jam yang tumpang tindih.')
                 ->danger()
                 ->persistent()
                 ->send();
@@ -64,7 +68,6 @@ class CreateSchedule extends CreateRecord
             $this->halt();
         }
     }
-
     /**
      * Hook yang berjalan SETELAH data sukses tersimpan (dari diskusi sebelumnya)
      */
