@@ -43,7 +43,7 @@ Before you begin, ensure you have met the following requirements:
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/yourusername/eabsensi.git
+   git clone https://github.com/syafiqbuana/eabsensi.git
    cd eabsensi
    ```
 
@@ -96,6 +96,3 @@ The system is built on a highly relational database architecture optimized for s
 * Full-Stack Web Developer
 * Passionate about building impactful applications using the TALL stack.
 
-## 📄 License
-
-This project is licensed under the [MIT License](LICENSE) - see the LICENSE file for details.
