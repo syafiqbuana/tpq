@@ -7,11 +7,10 @@
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600&display=swap" rel="stylesheet" />
 
-    <title>{{ $title ?? config('app.name') }}</title>
+    <title class="hidden">{{ $title ?? config('app.name') }}</title>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-    {{-- WAJIB untuk Flux UI --}}
     @livewireStyles
 </head>
 
@@ -49,8 +48,6 @@
             <flux:navlist.item icon="user" href="/profil" wire:navigate>
                 Profil
             </flux:navlist.item>
-
-            {{-- Membungkus item navigasi dengan modal trigger --}}
             <flux:modal.trigger name="logout-modal">
                 <flux:navlist.item icon="arrow-right-start-on-rectangle" class="w-full cursor-pointer">
                     Logout
@@ -59,12 +56,10 @@
         </flux:navlist>
     </flux:sidebar>
 
-    {{-- Konten Utama --}}
     <flux:main class="p-0 m-0">
         {{ $slot }}
     </flux:main>
 
-    {{-- Modal Konfirmasi Logout --}}
     <flux:modal name="logout-modal" class="min-w-[22rem]">
         <div class="space-y-6">
             <div>

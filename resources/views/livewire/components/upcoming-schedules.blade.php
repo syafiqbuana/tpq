@@ -1,28 +1,29 @@
-<flux:card class="w-full flex flex-col rounded-2xl p-0 m-0  overflow-hidden shadow-sm">
-    <div class="w-full p-4 border-b border-slate-200">
+<flux:card class="w-full flex flex-col rounded-2xl p-0 m-0 overflow-hidden shadow-sm">
+
+    <div class="w-full border-b border-slate-200 p-4">
         <div class="flex items-center gap-2">
-            <span class="text-[16px] text-black">Jadwal berikutnya</span>
+            <span class="text-[16px] text-black">Jadwal Berikutnya</span>
         </div>
     </div>
-    @if (empty($upcomingSchedules))
-        <div class="p-3 flex justify-center items-center px-4">
-            <div
-                class="flex lg:w-full min-h-37.5 lg:min-h-[200px] flex-col items-center text-center bg-zinc-50 py-4 px-2 rounded-lg border border-zinc-200 gap-3">
-                <x-heroicon-o-calendar-date-range
-                    class="h-10 w-10 bg-zinc-100 rounded-full border border-zinc-200 px-2 py-2" />
-                <p class="text-sm font-semibold text-zinc-900">
-                    Tidak Ada Jadwal
-                </p>
-                <p class="text-sm text-zinc-600">
-                    Silakan kembali besok atau cek menu <span class="font-medium">Jadwal</span> untuk melihat jadwal.
-                </p>
 
-                <flux:button wire:navigate variant="primary" size="xs" class="md:px-5 md:py-2 md:text-sm">
+    
+    @if (empty($upcomingSchedules))
+        {{-- Header untuk Empty State --}}
+        {{-- Empty State Content --}}
+        <div class="p-4 flex justify-center items-center">
+            <div class="flex w-full min-h-[200px] flex-col items-center justify-center text-center bg-zinc-50 py-6 px-4 rounded-xl border border-zinc-200 gap-3">
+                <x-heroicon-o-calendar-date-range class="h-12 w-12 text-zinc-400 bg-white rounded-full border border-zinc-200 p-2.5 shadow-sm" />
+                <div>
+                    <p class="text-sm font-semibold text-zinc-900">Tidak Ada Jadwal</p>
+                    <p class="text-sm text-zinc-500 mt-1">Silakan kembali besok atau cek menu <span class="font-medium text-zinc-700">Jadwal</span>.</p>
+                </div>
+                <flux:button wire:navigate variant="primary" size="sm" class="mt-2">
                     Halaman Jadwal
                 </flux:button>
             </div>
         </div>
     @else
+        {{-- Alpine Component Wrap (Membungkus Header & Slider) --}}
         <div x-data="{
             current: 0,
             total: {{ count($upcomingSchedules) }},
@@ -60,80 +61,74 @@
                     diff > 0 ? this.next() : this.prev();
                 }
             },
-        }" x-init="init()">
-            {{-- Header --}}
-            <div class="w-full bg-amber-50 rounded-t-md p-4">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-2">
-                        <x-heroicon-o-clock class="h-7 w-7 text-yellow-800" />
-                        <span class="font-semibold text-[18px] text-yellow-800">Jadwal berikutnya</span>
+        }" x-init="init()" class="flex flex-col w-full">
+            
+            {{-- Header Terintegrasi --}}      
+                {{-- Dots Navigation dipindah ke kanan header --}}
+                @if (count($upcomingSchedules) > 1)
+                    <div class="flex items-center gap-1.5">
+                        @foreach ($upcomingSchedules as $i => $_)
+                            <button @click="goTo({{ $i }})"
+                                :class="current === {{ $i }} ? 'w-4 bg-yellow-500' : 'w-2 bg-slate-200 hover:bg-slate-300'"
+                                class="h-2 rounded-full transition-all duration-300 focus:outline-none"></button>
+                        @endforeach
                     </div>
+                @endif
 
-                    {{-- Dots: hanya tampil jika > 1 card --}}
-                    @if (count($upcomingSchedules) > 1)
-                        <div class="flex items-center gap-1.5">
-                            @foreach ($upcomingSchedules as $i => $_)
-                                <button @click="goTo({{ $i }})"
-                                    :class="current === {{ $i }} ?
-                                        'w-4 bg-yellow-800' :
-                                        'w-2 bg-yellow-300'"
-                                    class="h-2 rounded-full transition-all duration-300"></button>
-                            @endforeach
-                        </div>
-                    @endif
-                </div>
-            </div>
-
-            {{-- Slides --}}
-            <div class="relative grid" @touchstart="onTouchStart($event)" @touchend="onTouchEnd($event)">
+            {{-- Slides Container --}}
+            <div class="relative grid overflow-hidden" @touchstart="onTouchStart($event)" @touchend="onTouchEnd($event)">
                 @foreach ($upcomingSchedules as $i => $schedule)
-                    <div class="col-start-1 row-start-1 p-4 w-full" x-show="current === {{ $i }}"
+                    {{-- Ubah padding disini agar rapi tanpa nested card --}}
+                    <div class="col-start-1 row-start-1 p-5 w-full bg-white" 
+                        x-show="current === {{ $i }}"
                         x-transition:enter="transition ease-out duration-300"
-                        x-transition:enter-start="opacity-0 translate-x-4"
+                        x-transition:enter-start="opacity-0 translate-x-8"
                         x-transition:enter-end="opacity-100 translate-x-0"
                         x-transition:leave="transition ease-in duration-200"
                         x-transition:leave-start="opacity-100 translate-x-0"
-                        x-transition:leave-end="opacity-0 -translate-x-4">
-                        <flux:card class="flex flex-col gap-3">
-                            <h2 class="text-[20px] font-extrabold">{{ $schedule['name'] }}</h2>
+                        x-transition:leave-end="opacity-0 -translate-x-8">
+                        
+                        {{-- Hapus <flux:card> disini, ganti flex biasa --}}
+                        <div class="flex flex-col gap-4">
+                            <h3 class="text-base font-bold text-slate-800">{{ $schedule['name'] }}</h3>
 
                             <div class="flex flex-col gap-3">
-                                <div class="flex items-center gap-3">
-                                    <x-heroicon-o-calendar class="w-5 h-5 text-slate-500 shrink-0" />
-                                    <flux:text class="text-base text-slate-500">
+                                <div class="flex items-start gap-3">
+                                    <x-heroicon-o-calendar class="w-5 h-5 text-slate-400 shrink-0 mt-0.5" />
+                                    <span class="text-[15px] text-slate-600 font-medium">
                                         {{ $schedule['next_day'] }}, {{ $schedule['next_date'] }}
-                                    </flux:text>
+                                    </span>
                                 </div>
-                                <div class="flex items-center gap-3">
-                                    <x-heroicon-o-clock class="w-5 h-5 text-slate-500 shrink-0" />
-                                    <flux:text class="text-base text-slate-500">
+                                <div class="flex items-start gap-3">
+                                    <x-heroicon-o-clock class="w-5 h-5 text-slate-400 shrink-0 mt-0.5" />
+                                    <span class="text-[15px] text-slate-600">
                                         {{ $schedule['time_open'] }} – {{ $schedule['time_close'] }} WIB
-                                    </flux:text>
+                                    </span>
                                 </div>
-                                <div class="flex items-center gap-3">
-                                    <x-heroicon-o-user class="w-5 h-5 text-slate-500 shrink-0" />
-                                    <flux:text class="text-base text-slate-500">
+                                <div class="flex items-start gap-3">
+                                    <x-heroicon-o-user class="w-5 h-5 text-slate-400 shrink-0 mt-0.5" />
+                                    <span class="text-[15px] text-slate-600">
                                         {{ $schedule['student_names'] }}
-                                    </flux:text>
+                                    </span>
                                 </div>
                             </div>
-                        </flux:card>
+                        </div>
                     </div>
                 @endforeach
 
-                {{-- Tombol prev/next manual --}}
+                {{-- Tombol prev/next manual dibuat lebih subtle (opsional, karena sudah ada swipe & dots) --}}
                 @if (count($upcomingSchedules) > 1)
                     <button @click="prev()"
-                        class="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white shadow rounded-full p-1 transition z-10">
-                        <x-heroicon-o-chevron-left class="w-5 h-5 text-slate-600" />
+                        class="absolute left-1 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white shadow-sm border border-slate-100 rounded-full p-1.5 transition z-10 text-slate-400 hover:text-slate-600 opacity-0 md:opacity-100">
+                        <x-heroicon-o-chevron-left class="w-4 h-4" />
                     </button>
                     <button @click="next()"
-                        class="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white shadow rounded-full p-1 transition z-10">
-                        <x-heroicon-o-chevron-right class="w-5 h-5 text-slate-600" />
+                        class="absolute right-1 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white shadow-sm border border-slate-100 rounded-full p-1.5 transition z-10 text-slate-400 hover:text-slate-600 opacity-0 md:opacity-100">
+                        <x-heroicon-o-chevron-right class="w-4 h-4" />
                     </button>
                 @endif
             </div>
-
+            
         </div>
     @endif
 

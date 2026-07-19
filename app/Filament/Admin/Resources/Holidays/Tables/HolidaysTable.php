@@ -24,9 +24,7 @@ class HolidaysTable
                         Carbon::parse($record->start_date)->format('d M Y')
                         . ' - ' .
                         Carbon::parse($record->end_date)->format('d M Y')
-                    ),
-                TextColumn::make('')
-                
+                    ),             
             ])
             ->filters([
                 //
